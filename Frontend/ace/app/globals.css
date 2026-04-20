@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+
+/* Login Page  */
+
+.login_page_cover {
+    background-image: url('/login_bg.jpg');
+    width: 100vw;
+    height: 100vh;
+}
