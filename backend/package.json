@@ -1,0 +1,35 @@
+{
+  "name": "ace",
+  "version": "1.0.0",
+  "description": "a complete backend for ace.",
+  "keywords": [
+    "ace",
+    "ace",
+    "soft",
+    "backend",
+    "ace"
+  ],
+  "homepage": "https://github.com/lakshya-sinha/ace#readme",
+  "bugs": {
+    "url": "https://github.com/lakshya-sinha/ace/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakshya-sinha/ace.git"
+  },
+  "license": "ISC",
+  "author": "lakshya",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dns": "^0.1.2",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.9.4"
+  }
+}
