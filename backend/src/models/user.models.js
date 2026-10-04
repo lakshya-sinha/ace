@@ -16,6 +16,16 @@ const userSchema = new Schema(
         localPath: ""
       }
     },
+    signature: {
+      type:{
+        url: String,
+        localPath: String,
+      },
+      default: {
+        url: `https://placehold.co/200x200`,
+        localPath: ""
+      }
+    },
     username: {
       type: String,
       required: true,
@@ -52,6 +62,36 @@ const userSchema = new Schema(
     forgotPasswordExpiry: {
       type: Date,
     },
+    type: {
+      type: String,
+    },
+    contactNo: {
+      type: String,
+    },
+    isEnglishTyping:{
+      Type: String,
+    },
+    isHindiTyping:{
+      type: String,
+    },
+    Dob:{
+      type: String,
+    },
+    mothersName:{
+      type: String,
+    },
+    fathersName:{
+      type: String,
+    },
+    gender:{
+      type: String,
+    },
+    discount:{
+      type: Number,
+    },
+    installment:{
+      type: String,
+    }
   },
   {
     timestamps: true,

@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/async-handler.js";
 import jwt from "jsonwebtoken";
 
 
+
 const generateAccessTokenAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId)
@@ -24,11 +25,8 @@ const generateAccessTokenAndRefreshTokens = async (userId) => {
 
 }
 
-
-
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body
-
+  const { email, username, password, fullName, type, contactNo, isEnglishTyping, isHindiTyping, Dob, mothersName, fathersName, gender, discount, installment  } = req.body
 
   const existedUser = await User.findOne({
     $or: [{ username }, { email }]
@@ -36,13 +34,40 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User with email or username is already exists.")
   }
+  const avatarFile = req.files?.avatar?.[0];
+  const signatureFile = req.files?.signature?.[0];
+  const avatar = avatarFile
+    ? {
+        url: `/images/${avatarFile.filename}`,
+        localPath: avatarFile.path,
+      }
+    : undefined;
+  const signature = signatureFile
+    ? {
+        url: `/images/${signatureFile.filename}`,
+        localPath: signatureFile.path,
+    }
+    : undefined;
+
   const user = await User.create({
     email,
     password,
     username,
     isEmailVerified: true,
-  })
-
+    fullName, 
+    type, 
+    contactNo, 
+    isEnglishTyping, 
+    isHindiTyping,
+    Dob, 
+    mothersName,
+    fathersName,
+    gender,
+    discount,
+    installment,
+    ...(avatar && { avatar }),
+    ...(signature && { signature }),
+  });
 
   const { unHashedToken,
     hashedToken,
@@ -130,10 +155,6 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(200, {}, "User logged out")
     )
-
-
-
-
 })
 
 const getCurrentUser = asyncHandler(async (req, res) => {
@@ -217,7 +238,6 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         "password changed successfully"
       )
     )
-
 })
 
 export {

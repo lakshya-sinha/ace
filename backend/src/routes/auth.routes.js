@@ -3,11 +3,19 @@ import { registerUser, login, logoutUser, refreshAccessToken, getCurrentUser, ch
 import { validate } from "../middlewares/validator.middleware.js";
 import { userRegisterValidator, userLoginValidator, userChangeCurrentPasswordValidator } from "../validators/index.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
+import { uploadImg } from "../middlewares/upload.middleware.js";
+
 
 const router = Router();
 
 //& UnSecure Route
-router.route("/register").post(registerUser);
+router.route("/register").post(
+  uploadImg.fields([
+    { name: "avatar", maxCount: 1 },
+    { name: "signature", maxCount: 1 },
+  ]),
+  registerUser,
+);
 router.route("/login").post(userLoginValidator(), validate, login);
 router.route("/refresh-token").post(refreshAccessToken);
 
