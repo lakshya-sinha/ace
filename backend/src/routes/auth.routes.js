@@ -26,4 +26,5 @@ router.route("/current-user").post(verifyJWT, getCurrentUser);
 router.route("/change-password").post(verifyJWT, userChangeCurrentPasswordValidator(), validate, changeCurrentPassword);
 
 
+
 export default router;

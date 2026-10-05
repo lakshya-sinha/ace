@@ -17,7 +17,7 @@ app.use(express.static("public"))
 //* CORS  Configurations
 app.use(cors({
   origin: process.env.CORS_ORIGIN?.split(",") || "http://localhost:5173",
-  credential: true,
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS",],
   allowedHeaders: ["Authorization", "Content-Type"]
 }))
@@ -29,8 +29,12 @@ app.use(cookieParser())
 
 import healthcheckRouter from "./routes/healthcheck.routes.js";
 import authRouter from "./routes/auth.routes.js";
+import adminRouter from './routes/admin.routes.js';
+import studentRouter from './routes/student.routes.js';
 app.use("/api/v1/healthcheck", healthcheckRouter);
-app.use("/api/v1/auth", authRouter)
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/student", studentRouter);
 
 
 

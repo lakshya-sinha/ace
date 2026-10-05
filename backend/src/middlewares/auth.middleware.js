@@ -28,3 +28,25 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
   }
 
 })
+
+export const verifyAdmin = asyncHandler(async (req, res, next) => {
+  if (!req.user) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  if (req.user.type !== "admin") {
+    throw new ApiError(403, "You don't have permission to do this operation.");
+  }
+
+  next();
+});
+
+export const verifyStudent = asyncHandler(async (req, res, next) => {
+  if(!req.user){
+    throw new ApiError(401, "Unauthorized requrest");
+  }
+  if(req.user.type !== "student"){
+    throw new ApiError(403, "You don't have permission to do this operation.")
+  }
+  next();
+})

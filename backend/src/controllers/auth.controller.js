@@ -1,9 +1,9 @@
 import { User } from "../models/user.models.js";
+import { Enrollment } from "../models/enrollment.models.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import jwt from "jsonwebtoken";
-
 
 
 const generateAccessTokenAndRefreshTokens = async (userId) => {
@@ -116,23 +116,21 @@ const login = asyncHandler(async (req, res) => {
 
 
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken "
+    "-password -refreshToken"
   )
+
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
   }
 
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
     .json(
       new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "User Logged In successfully")
     )
-
-
 })
 
 const logoutUser = asyncHandler(async (req, res) => {
@@ -145,7 +143,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   );
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
   }
 
   return res
@@ -158,16 +156,42 @@ const logoutUser = asyncHandler(async (req, res) => {
 })
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select(
+    "-password -refreshToken -forgotPasswordToken -forgotPasswordExpiry"
+  );
+  if (!user) throw new ApiError(404, "User not found");
+
+  const userData = user.toJSON();
+
+  // Enrollments are loaded for every user type. Admins/teachers simply get an empty list.
+  const enrollments = await Enrollment.find({ student: user._id })
+    .populate("course", "title price language durationInMonths material")
+    .populate("installments.receivedBy", "fullName username");
+
+  userData.enrollments = enrollments.map((e) => ({
+    enrollmentId: e._id,
+    course: e.course,
+    status: e.status,
+    enrolledOn: e.enrolledOn,
+    discountPercent: e.discountPercent,
+    finalFee: e.finalFee,
+    totalPaid: e.totalPaid,
+    due: e.due,
+    feeStatus: e.feeStatus,
+    installments: e.installments,
+  }));
+
+  const active = enrollments.filter((e) => e.status !== "cancelled");
+  userData.fees = {
+    totalFee: active.reduce((sum, e) => sum + e.finalFee, 0),
+    totalPaid: active.reduce((sum, e) => sum + e.totalPaid, 0),
+    totalDue: active.reduce((sum, e) => sum + e.due, 0),
+  };
+
   return res
     .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        req.user,
-        "Current User fetched Successfully"
-      )
-    )
-})
+    .json(new ApiResponse(200, userData, "Current User fetched Successfully"));
+});
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken
@@ -188,7 +212,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
     }
 
     const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenAndRefreshTokens(user._id)
@@ -196,7 +220,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     user.refreshToken = newRefreshToken;
     await user.save();
 
-    return re
+    return res
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", newRefreshToken, options)

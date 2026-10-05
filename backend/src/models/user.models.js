@@ -1,8 +1,8 @@
+// models/user.model.js
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-
 
 const userSchema = new Schema(
   {
@@ -13,18 +13,18 @@ const userSchema = new Schema(
       },
       default: {
         url: `https://placehold.co/200x200`,
-        localPath: ""
-      }
+        localPath: "",
+      },
     },
     signature: {
-      type:{
+      type: {
         url: String,
         localPath: String,
       },
       default: {
         url: `https://placehold.co/200x200`,
-        localPath: ""
-      }
+        localPath: "",
+      },
     },
     username: {
       type: String,
@@ -32,7 +32,6 @@ const userSchema = new Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true
     },
     email: {
       type: String,
@@ -47,11 +46,11 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"]
+      required: [true, "Password is required"],
     },
     isEmailVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     refreshToken: {
       type: String,
@@ -62,81 +61,76 @@ const userSchema = new Schema(
     forgotPasswordExpiry: {
       type: Date,
     },
+
+    // Who the user is: used in login to decide whether to load fees
     type: {
       type: String,
+      enum: ["student", "teacher", "admin"],
+      default: "student",
     },
-    contactNo: {
-      type: String,
-    },
-    isEnglishTyping:{
-      Type: String,
-    },
-    isHindiTyping:{
-      type: String,
-    },
-    Dob:{
-      type: String,
-    },
-    mothersName:{
-      type: String,
-    },
-    fathersName:{
-      type: String,
-    },
-    gender:{
-      type: String,
-    },
-    discount:{
-      type: Number,
-    },
-    installment:{
-      type: String,
-    }
+
+    // Profile
+    contactNo:     { type: String, trim: true },
+    gender:        { type: String, enum: ["male", "female", "other"] },
+    dob:           { type: Date },
+    fathersName:   { type: String, trim: true },
+    mothersName:   { type: String, trim: true },
+    isEnglishTyping: { type: Boolean, default: false },
+    isHindiTyping:   { type: Boolean, default: false },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
-)
+);
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+// Optional: lets you do User.findById(id).populate("enrollments")
+// (Enrollment is its own collection, linked by Enrollment.student)
+userSchema.virtual("enrollments", {
+  ref: "Enrollment",
+  localField: "_id",
+  foreignField: "student",
+});
+
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
-  next()
-})
+});
+
 userSchema.methods.isPasswordCorrect = async function (password) {
-  return await bcrypt.compare(password, this.password)
-}
+  return await bcrypt.compare(password, this.password);
+};
+
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this._id,
       email: this.email,
-      username: this.username
+      username: this.username,
     },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
-  )
-}
+  );
+};
+
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
-    {
-      _id: this._id
-    },
+    { _id: this._id },
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
-  )
-}
+  );
+};
+
 userSchema.methods.generateTemporaryToken = function () {
-  const unHashedToken = crypto.randomBytes(20).toString("hex")
+  const unHashedToken = crypto.randomBytes(20).toString("hex");
   const hashedToken = crypto
     .createHash("sha256")
     .update(unHashedToken)
-    .digest("hex")
+    .digest("hex");
 
-  const tokenExpiry = Date.now() + (20 * 60 * 1000) // 20min
+  const tokenExpiry = Date.now() + 20 * 60 * 1000; // 20 min
   return { unHashedToken, hashedToken, tokenExpiry };
-}
+};
 
 export const User = mongoose.model("User", userSchema);
-
-
