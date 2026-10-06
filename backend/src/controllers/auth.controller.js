@@ -5,34 +5,45 @@ import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import jwt from "jsonwebtoken";
 
-
 const generateAccessTokenAndRefreshTokens = async (userId) => {
   try {
-    const user = await User.findById(userId)
+    const user = await User.findById(userId);
 
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
-
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
-
   } catch (err) {
-    console.error("TOKEN ERROR:", err);   // add this
+    console.error("TOKEN ERROR:", err); // add this
     throw new ApiError(500, "Something went wrong when accessing token ");
   }
-
-}
+};
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, username, password, fullName, type, contactNo, isEnglishTyping, isHindiTyping, Dob, mothersName, fathersName, gender, discount, installment  } = req.body
+  const {
+    email,
+    username,
+    password,
+    fullName,
+    type,
+    contactNo,
+    isEnglishTyping,
+    isHindiTyping,
+    Dob,
+    mothersName,
+    fathersName,
+    gender,
+    discount,
+    installment,
+  } = req.body;
 
   const existedUser = await User.findOne({
-    $or: [{ username }, { email }]
-  })
+    $or: [{ username }, { email }],
+  });
   if (existedUser) {
-    throw new ApiError(409, "User with email or username is already exists.")
+    throw new ApiError(409, "User with email or username is already exists.");
   }
   const avatarFile = req.files?.avatar?.[0];
   const signatureFile = req.files?.signature?.[0];
@@ -46,7 +57,7 @@ const registerUser = asyncHandler(async (req, res) => {
     ? {
         url: `/images/${signatureFile.filename}`,
         localPath: signatureFile.path,
-    }
+      }
     : undefined;
 
   const user = await User.create({
@@ -54,12 +65,12 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
     username,
     isEmailVerified: true,
-    fullName, 
-    type, 
-    contactNo, 
-    isEnglishTyping, 
+    fullName,
+    type,
+    contactNo,
+    isEnglishTyping,
     isHindiTyping,
-    Dob, 
+    Dob,
     mothersName,
     fathersName,
     gender,
@@ -69,95 +80,97 @@ const registerUser = asyncHandler(async (req, res) => {
     ...(signature && { signature }),
   });
 
-  const { unHashedToken,
-    hashedToken,
-    tokenExpiry
-  } = user.generateTemporaryToken()
+  const { unHashedToken, hashedToken, tokenExpiry } =
+    user.generateTemporaryToken();
 
   await user.save({ validateBeforeSave: false });
 
   const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  )
+    "-password -refreshToken",
+  );
 
   if (!createdUser) {
-    throw new ApiError(500, "something went wrong while registering a user ")
+    throw new ApiError(500, "something went wrong while registering a user ");
   }
 
   return res
     .status(201)
     .json(
-      new ApiResponse(201, { user: createdUser },
-        "User registered successfully and verification email has been be send on your email!")
-    )
-})
-
+      new ApiResponse(
+        201,
+        { user: createdUser },
+        "User registered successfully and verification email has been be send on your email!",
+      ),
+    );
+});
 
 const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body
+  const { email, password } = req.body;
 
   if (!email) {
-    throw new ApiError(400, "email is required!");
+    return res.status(400).json(new ApiResponse(400, {}, "Email is required."));
   }
 
   const user = await User.findOne({ email });
   if (!user) {
-    throw new ApiError(400, "User does not exists");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, {}, "User does not exist"));
   }
 
-
-  const isPasswordValid = await user.isPasswordCorrect(password)
+  const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
     throw new ApiError(400, "Invalid credentials");
   }
 
-  const { accessToken, refreshToken } = await generateAccessTokenAndRefreshTokens(user._id);
-
+  const { accessToken, refreshToken } =
+    await generateAccessTokenAndRefreshTokens(user._id);
 
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  )
-
+    "-password -refreshToken",
+  );
 
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-  }
+  };
 
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
     .json(
-      new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "User Logged In successfully")
-    )
-})
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User Logged In successfully",
+      ),
+    );
+});
 
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     { $set: { refreshToken: "" } },
     {
-      new: true
-    }
+      new: true,
+    },
   );
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-  }
+  };
 
   return res
     .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
-    .json(
-      new ApiResponse(200, {}, "User logged out")
-    )
-})
+    .json(new ApiResponse(200, {}, "User logged out"));
+});
 
 const getCurrentUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select(
-    "-password -refreshToken -forgotPasswordToken -forgotPasswordExpiry"
+    "-password -refreshToken -forgotPasswordToken -forgotPasswordExpiry",
   );
   if (!user) throw new ApiError(404, "User not found");
 
@@ -194,14 +207,18 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken
+  const incomingRefreshToken =
+    req.cookies?.refreshToken || req.body.refreshToken;
 
   if (!incomingRefreshToken) {
-    throw new ApiError(401, "Unauthorized access")
+    throw new ApiError(401, "Unauthorized access");
   }
 
   try {
-    const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+    );
     const user = await User.findById(decodedToken?._id);
     if (!user) {
       throw new ApiError(401, "Invalid Refersh Token");
@@ -213,9 +230,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const options = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-    }
+    };
 
-    const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenAndRefreshTokens(user._id)
+    const { accessToken, refreshToken: newRefreshToken } =
+      await generateAccessTokenAndRefreshTokens(user._id);
 
     user.refreshToken = newRefreshToken;
     await user.save();
@@ -225,28 +243,20 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", newRefreshToken, options)
       .json(
-        new ApiResponse(
-          200,
-          { accessToken, refreshToken: newRefreshToken }
-        )
-      )
-
+        new ApiResponse(200, { accessToken, refreshToken: newRefreshToken }),
+      );
   } catch (error) {
-    throw new ApiError(401, "Invalid Refresh Token")
+    throw new ApiError(401, "Invalid Refresh Token");
   }
-})
+});
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-
   const { oldPassword, newPaessword } = req.body;
   const user = await User.findById(req.user?.id);
   const isPasswordValid = await user.isPasswordCorrect(oldPassword);
 
   if (!isPasswordValid) {
-    throw new ApiError(
-      400,
-      "Invalid old password"
-    )
+    throw new ApiError(400, "Invalid old password");
   }
 
   user.password = newPassword;
@@ -255,14 +265,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        {},
-        "password changed successfully"
-      )
-    )
-})
+    .json(new ApiResponse(200, {}, "password changed successfully"));
+});
 
 export {
   registerUser,
