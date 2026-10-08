@@ -7,6 +7,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Toaster } from 'sonner'
 
+import { AuthProvider } from '@/lib/auth-context'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import appCss from '../styles.css?url'
@@ -49,7 +50,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <script />
       </head>
       <body>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <Toaster richColors position="top-right" />
         <TanStackDevtools
           config={{

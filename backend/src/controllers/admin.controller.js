@@ -10,9 +10,41 @@ import mongoose from "mongoose";
 const registerStudent = asyncHandler(async (req, res) => {
   console.log("someone access this route");
   const {
-    email, username, password, fullName, contactNo,
-    isEnglishTyping, isHindiTyping, dob, mothersName, fathersName, gender,
+    email,
+    username,
+    password,
+    fullName,
+    contactNo,
+    isEnglishTyping,
+    isHindiTyping,
+    dob,
+    mothersName,
+    fathersName,
+    gender,
+    careOfTitle,
+    careOfName,
+    careOfNumber,
+    address,
+    matricBoard,
+    matricSchool,
+    matricPassingYear,
+    matricPercentage,
+    interBoard,
+    interSchool,
+    interPassingYear,
+    interPercentage,
+    graduationBoard,
+    graduationCollege,
+    graduationPassingYear,
+    graduationPercentage,
+    otherBoard,
+    otherCollege,
+    otherPassingYear,
+    otherPercentage,
+    aadhaarNo,
+    remarks,
     courseId,
+    spouseName,
   } = req.body;
 
   // multipart/form-data sends everything as strings, so convert
@@ -22,7 +54,11 @@ const registerStudent = asyncHandler(async (req, res) => {
   if (!email || !username || !password) {
     throw new ApiError(400, "email, username and password are required");
   }
-  if (Number.isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+  if (
+    Number.isNaN(discountPercent) ||
+    discountPercent < 0 ||
+    discountPercent > 100
+  ) {
     throw new ApiError(400, "discountPercent must be between 0 and 100");
   }
 
@@ -44,10 +80,13 @@ const registerStudent = asyncHandler(async (req, res) => {
   const avatarFile = req.files?.avatar?.[0];
   const signatureFile = req.files?.signature?.[0];
   const avatar = avatarFile
-    ? { url: `students/images/${avatarFile.filename}`, localPath: avatarFile.path }
+    ? { url: `/images/${avatarFile.filename}`, localPath: avatarFile.path }
     : undefined;
   const signature = signatureFile
-    ? { url: `students/signature/${signatureFile.filename}`, localPath: signatureFile.path }
+    ? {
+        url: `/images/${signatureFile.filename}`,
+        localPath: signatureFile.path,
+      }
     : undefined;
 
   // 4. Create the user (no fee fields here anymore)
@@ -56,7 +95,7 @@ const registerStudent = asyncHandler(async (req, res) => {
     username,
     password,
     fullName,
-    type: "student",           // forced, never taken from req.body
+    type: "student", // forced, never taken from req.body
     isEmailVerified: true,
     contactNo,
     isEnglishTyping,
@@ -65,6 +104,29 @@ const registerStudent = asyncHandler(async (req, res) => {
     mothersName,
     fathersName,
     gender,
+    careOfTitle,
+    careOfName,
+    careOfNumber,
+    address,
+    matricBoard,
+    matricSchool,
+    matricPassingYear,
+    matricPercentage,
+    interBoard,
+    interSchool,
+    interPassingYear,
+    interPercentage,
+    graduationBoard,
+    graduationCollege,
+    graduationPassingYear,
+    graduationPercentage,
+    otherBoard,
+    otherCollege,
+    otherPassingYear,
+    otherPercentage,
+    aadhaarNo,
+    remarks,
+    spouseName,
     ...(avatar && { avatar }),
     ...(signature && { signature }),
   });
@@ -81,11 +143,16 @@ const registerStudent = asyncHandler(async (req, res) => {
       await enrollment.populate("course", "title price");
     } catch (err) {
       await User.findByIdAndDelete(user._id); // don't leave a student without the course they were given
-      throw new ApiError(500, "Could not assign the course, registration rolled back");
+      throw new ApiError(
+        500,
+        "Could not assign the course, registration rolled back",
+      );
     }
   }
 
-  const createdUser = await User.findById(user._id).select("-password -refreshToken");
+  const createdUser = await User.findById(user._id).select(
+    "-password -refreshToken",
+  );
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering a user");
   }
@@ -105,8 +172,8 @@ const registerStudent = asyncHandler(async (req, res) => {
           feeStatus: enrollment.feeStatus,
         },
       },
-      "Student registered successfully"
-    )
+      "Student registered successfully",
+    ),
   );
 });
 
@@ -119,25 +186,43 @@ const makeSlug = (text) =>
     .replace(/(^-|-$)/g, "");
 
 const createCourse = asyncHandler(async (req, res) => {
+  console.log("create course", req.body);
   const { title, description, language, durationInMonths } = req.body;
   const price = Number(req.body.price);
 
   if (!title || req.body.price === undefined) {
-    throw new ApiError(400, "title and price are required");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, {}, "title and price are required"));
   }
   if (Number.isNaN(price) || price < 0) {
-    throw new ApiError(400, "price must be a valid number, 0 or more");
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(400, {}, "price must be a valid number, 0 or more"),
+      );
   }
   if (language && !["english", "hindi", "both"].includes(language)) {
-    throw new ApiError(400, "language must be english, hindi or both");
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(400, {}, "language must be english, hindi or both"),
+      );
   }
 
   const slug = makeSlug(req.body.slug || title);
-  if (!slug) throw new ApiError(400, "Could not generate a valid slug");
-
+  if (!slug) {
+    return res
+      .status(400)
+      .json(new ApiResopnse(400, {}, "could not generate a valid slug"));
+  }
   const exists = await Course.findOne({ slug });
   if (exists) {
-    throw new ApiError(409, "A course with this slug already exists");
+    return res
+      .status(409)
+      .json(
+        new ApiResponse(409, {}, "A course with this slug already exists."),
+      );
   }
 
   const course = await Course.create({
@@ -156,20 +241,43 @@ const createCourse = asyncHandler(async (req, res) => {
 
 const getAllCourses = asyncHandler(async (req, res) => {
   const filter = req.query.active === "true" ? { isActive: true } : {};
-  const courses = await Course.find(filter).sort({ createdAt: -1 });
-  return res.status(200).json(new ApiResponse(200, courses, "Courses fetched"));
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const [courses, total] = await Promise.all([
+    Course.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Course.countDocuments(filter),
+  ]);
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        courses,
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+      "Courses fetched",
+    ),
+  );
 });
 
 const updateCourse = asyncHandler(async (req, res) => {
-  const { title, description, language, durationInMonths, price, isActive } = req.body;
+  const { title, description, language, durationInMonths, price, isActive } =
+    req.body;
 
   const updates = {};
   if (title !== undefined) updates.title = title;
   if (description !== undefined) updates.description = description;
   if (language !== undefined) updates.language = language;
-  if (durationInMonths !== undefined) updates.durationInMonths = Number(durationInMonths);
+  if (durationInMonths !== undefined)
+    updates.durationInMonths = Number(durationInMonths);
   if (price !== undefined) updates.price = Number(price);
-  if (isActive !== undefined) updates.isActive = isActive === true || isActive === "true";
+  if (isActive !== undefined)
+    updates.isActive = isActive === true || isActive === "true";
 
   const course = await Course.findByIdAndUpdate(req.params.id, updates, {
     new: true,
@@ -180,10 +288,31 @@ const updateCourse = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, course, "Course updated"));
 });
 
+const deleteCourse = asyncHandler(async (req, res) => {
+  assertValidId(req.params.id, "course id");
+
+  const course = await Course.findById(req.params.id);
+  if (!course) throw new ApiError(404, "Course not found");
+
+  const enrollmentExists = await Enrollment.exists({ course: course._id });
+  if (enrollmentExists) {
+    throw new ApiError(
+      409,
+      "Course has enrollment history and cannot be deleted",
+    );
+  }
+
+  await course.deleteOne();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { courseId: course._id }, "Course deleted"));
+});
+
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const assertValidId = (id, label = "id") => {
-  if (!mongoose.isValidObjectId(id)) throw new ApiError(400, `Invalid ${label}`);
+  if (!mongoose.isValidObjectId(id))
+    throw new ApiError(400, `Invalid ${label}`);
 };
 
 const SAFE_USER_FIELDS =
@@ -271,9 +400,15 @@ const getAllStudents = asyncHandler(async (req, res) => {
   return res.status(200).json(
     new ApiResponse(
       200,
-      { students: data, page, limit, total, totalPages: Math.ceil(total / limit) },
-      "Students fetched"
-    )
+      {
+        students: data,
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+      "Students fetched",
+    ),
   );
 });
 
@@ -281,7 +416,10 @@ const getAllStudents = asyncHandler(async (req, res) => {
 const getStudentDetails = asyncHandler(async (req, res) => {
   assertValidId(req.params.id, "student id");
 
-  const student = await User.findOne({ _id: req.params.id, type: "student" }).select(SAFE_USER_FIELDS);
+  const student = await User.findOne({
+    _id: req.params.id,
+    type: "student",
+  }).select(SAFE_USER_FIELDS);
   if (!student) throw new ApiError(404, "Student not found");
 
   const enrollments = await Enrollment.find({ student: student._id })
@@ -291,13 +429,17 @@ const getStudentDetails = asyncHandler(async (req, res) => {
   return res.status(200).json(
     new ApiResponse(
       200,
-      { ...student.toJSON(), enrollments: undefined, fees: buildFeeSummary(enrollments) },
-      "Student details fetched"
-    )
+      {
+        ...student.toJSON(),
+        enrollments: undefined,
+        fees: buildFeeSummary(enrollments),
+      },
+      "Student details fetched",
+    ),
   );
 });
 
-// 3. UPDATE STUDENT (profile only, never fees/password/type)
+// 3. UPDATE STUDENT (profile and account status only, never fees/password/type/creator)
 const updateStudent = asyncHandler(async (req, res) => {
   assertValidId(req.params.id, "student id");
 
@@ -305,20 +447,61 @@ const updateStudent = asyncHandler(async (req, res) => {
   if (!student) throw new ApiError(404, "Student not found");
 
   const allowed = [
-    "fullName", "email", "username", "contactNo", "gender", "dob",
-    "fathersName", "mothersName", "isEnglishTyping", "isHindiTyping",
+    "fullName",
+    "email",
+    "username",
+    "contactNo",
+    "gender",
+    "dob",
+    "fathersName",
+    "mothersName",
+    "careOfTitle",
+    "careOfName",
+    "careOfNumber",
+    "address",
+    "isEnglishTyping",
+    "isHindiTyping",
+    "matricBoard",
+    "matricSchool",
+    "matricPassingYear",
+    "matricPercentage",
+    "interBoard",
+    "interSchool",
+    "interPassingYear",
+    "interPercentage",
+    "graduationBoard",
+    "graduationCollege",
+    "graduationPassingYear",
+    "graduationPercentage",
+    "otherBoard",
+    "otherCollege",
+    "otherPassingYear",
+    "otherPercentage",
+    "aadhaarNo",
+    "remarks",
+    "spouseName",
+    "isEmailVerified",
+    "locked",
   ];
   const updates = {};
   for (const key of allowed) {
     if (req.body[key] !== undefined) updates[key] = req.body[key];
   }
+  for (const key of ["gender", "careOfTitle"]) {
+    if (updates[key] === "") updates[key] = undefined;
+  }
 
   // Duplicate check for email / username
   const orConditions = [];
-  if (updates.email) orConditions.push({ email: updates.email.toLowerCase().trim() });
-  if (updates.username) orConditions.push({ username: updates.username.toLowerCase().trim() });
+  if (updates.email)
+    orConditions.push({ email: updates.email.toLowerCase().trim() });
+  if (updates.username)
+    orConditions.push({ username: updates.username.toLowerCase().trim() });
   if (orConditions.length) {
-    const clash = await User.findOne({ _id: { $ne: student._id }, $or: orConditions });
+    const clash = await User.findOne({
+      _id: { $ne: student._id },
+      $or: orConditions,
+    });
     if (clash) throw new ApiError(409, "Email or username already in use");
   }
 
@@ -326,10 +509,16 @@ const updateStudent = asyncHandler(async (req, res) => {
   const avatarFile = req.files?.avatar?.[0];
   const signatureFile = req.files?.signature?.[0];
   if (avatarFile) {
-    updates.avatar = { url: `students/images/${avatarFile.filename}`, localPath: avatarFile.path };
+    updates.avatar = {
+      url: `/images/${avatarFile.filename}`,
+      localPath: avatarFile.path,
+    };
   }
   if (signatureFile) {
-    updates.signature = { url: `students/signature/${signatureFile.filename}`, localPath: signatureFile.path };
+    updates.signature = {
+      url: `/images/${signatureFile.filename}`,
+      localPath: signatureFile.path,
+    };
   }
 
   student.set(updates);
@@ -347,7 +536,11 @@ const assignCourseToStudent = asyncHandler(async (req, res) => {
 
   if (!courseId) throw new ApiError(400, "courseId is required");
   assertValidId(courseId, "courseId");
-  if (Number.isNaN(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+  if (
+    Number.isNaN(discountPercent) ||
+    discountPercent < 0 ||
+    discountPercent > 100
+  ) {
     throw new ApiError(400, "discountPercent must be between 0 and 100");
   }
 
@@ -356,9 +549,13 @@ const assignCourseToStudent = asyncHandler(async (req, res) => {
     Course.findById(courseId),
   ]);
   if (!student) throw new ApiError(404, "Student not found");
-  if (!course || !course.isActive) throw new ApiError(404, "Course not found or inactive");
+  if (!course || !course.isActive)
+    throw new ApiError(404, "Course not found or inactive");
 
-  let enrollment = await Enrollment.findOne({ student: student._id, course: course._id });
+  let enrollment = await Enrollment.findOne({
+    student: student._id,
+    course: course._id,
+  });
 
   if (enrollment) {
     if (enrollment.status !== "cancelled") {
@@ -391,8 +588,41 @@ const assignCourseToStudent = asyncHandler(async (req, res) => {
         due: enrollment.due,
         feeStatus: enrollment.feeStatus,
       },
-      "Course assigned to student"
-    )
+      "Course assigned to student",
+    ),
+  );
+});
+
+const deassignCourseFromStudent = asyncHandler(async (req, res) => {
+  const { id, enrollmentId } = req.params;
+  assertValidId(id, "student id");
+  assertValidId(enrollmentId, "enrollment id");
+
+  const enrollment = await Enrollment.findOne({
+    _id: enrollmentId,
+    student: id,
+  });
+  if (!enrollment) {
+    throw new ApiError(404, "Enrollment not found for this student");
+  }
+  if (enrollment.status === "cancelled") {
+    throw new ApiError(409, "Course is already deassigned from this student");
+  }
+
+  enrollment.status = "cancelled";
+  await enrollment.save();
+  await enrollment.populate("course", "title price");
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        enrollmentId: enrollment._id,
+        courseTitle: enrollment.course?.title,
+        status: enrollment.status,
+      },
+      "Course deassigned from student",
+    ),
   );
 });
 
@@ -408,8 +638,12 @@ const addStudentInstallment = asyncHandler(async (req, res) => {
   }
 
   // Makes sure the enrollment really belongs to this student
-  const enrollment = await Enrollment.findOne({ _id: enrollmentId, student: id });
-  if (!enrollment) throw new ApiError(404, "Enrollment not found for this student");
+  const enrollment = await Enrollment.findOne({
+    _id: enrollmentId,
+    student: id,
+  });
+  if (!enrollment)
+    throw new ApiError(404, "Enrollment not found for this student");
 
   try {
     await enrollment.addInstallment({
@@ -436,14 +670,65 @@ const addStudentInstallment = asyncHandler(async (req, res) => {
         feeStatus: enrollment.feeStatus,
         status: enrollment.status,
       },
-      "Installment recorded"
-    )
+      "Installment recorded",
+    ),
   );
 });
 
+const deleteStudentInstallment = asyncHandler(async (req, res) => {
+  const { id, enrollmentId, installmentId } = req.params;
+  assertValidId(id, "student id");
+  assertValidId(enrollmentId, "enrollment id");
+  assertValidId(installmentId, "installment id");
 
-export {   createCourse, getAllCourses, updateCourse, registerStudent,
-  getAllStudents, getStudentDetails, updateStudent,
-  assignCourseToStudent, addStudentInstallment
+  const enrollment = await Enrollment.findOne({
+    _id: enrollmentId,
+    student: id,
+  });
+  if (!enrollment) {
+    throw new ApiError(404, "Enrollment not found for this student");
+  }
+
+  const installment = enrollment.installments.id(installmentId);
+  if (!installment) throw new ApiError(404, "Installment not found");
+
+  installment.deleteOne();
+  enrollment.installments.forEach((entry, index) => {
+    entry.number = index + 1;
+  });
+  await enrollment.populate("course", "title price");
+  if (enrollment.status !== "cancelled") {
+    enrollment.status = enrollment.due <= 0 ? "completed" : "active";
+  }
+  await enrollment.save();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        installmentId,
+        finalFee: enrollment.finalFee,
+        totalPaid: enrollment.totalPaid,
+        due: enrollment.due,
+        feeStatus: enrollment.feeStatus,
+        status: enrollment.status,
+      },
+      "Installment deleted",
+    ),
+  );
+});
+
+export {
+  createCourse,
+  getAllCourses,
+  updateCourse,
+  deleteCourse,
+  registerStudent,
+  getAllStudents,
+  getStudentDetails,
+  updateStudent,
+  assignCourseToStudent,
+  deassignCourseFromStudent,
+  addStudentInstallment,
+  deleteStudentInstallment,
 };
-

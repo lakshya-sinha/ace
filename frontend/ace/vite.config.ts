@@ -8,6 +8,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  optimizeDeps: {
+     include: ['axios', '@tanstack/react-query', 'lucide-react', 'sonner']
+  },
   plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
 })
 

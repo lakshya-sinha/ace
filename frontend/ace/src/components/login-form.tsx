@@ -3,6 +3,7 @@ import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { PhoneCall } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -15,11 +16,14 @@ import { Input } from '@/components/ui/input'
 import { loginRequest } from '@/api/auth'
 import { loginSchema } from '@/schemas/auth'
 import { getErrorMessage } from '@/lib/get-error-message'
+import { useAuth } from '@/lib/auth-context'
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<'form'>) {
+  const navigate = useNavigate()
+  const { setUser } = useAuth()
   const loginMutation = useMutation({
     mutationFn: loginRequest,
     onSuccess: (res) => {
@@ -27,8 +31,8 @@ export function LoginForm({
       const { user, accessToken, refreshToken } = res.data
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
-      localStorage.setItem('user', JSON.stringify(user))
-      // navigate({ to: '/dashboard' })
+      setUser(user)
+      navigate({ to: `/dashboard/${user.type}` })
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   })

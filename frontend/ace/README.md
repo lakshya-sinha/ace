@@ -9,6 +9,81 @@ npm install
 npm run dev
 ```
 
+Before starting the app, copy `.env.example` to `.env` (PowerShell:
+`Copy-Item .env.example .env`).
+
+The frontend runs at `http://localhost:3001`; the backend defaults to
+`http://localhost:3000`. Set `VITE_API_URL` in `.env` to the backend's base URL.
+If you change the frontend origin, make sure the backend's `CORS_ORIGIN` allows
+it too. Do not put API secrets in `VITE_` variables; they are included in the
+browser build.
+
+## Calling the API
+
+API code is organized by responsibility:
+
+- `src/lib/api.ts` creates the shared Axios client, sets the base URL and
+  timeout, and attaches the saved access token.
+- `src/api/` contains endpoint functions grouped by feature. For example,
+  `src/api/auth.ts` contains the login and logout requests.
+- `src/schemas/` contains request validation schemas used by forms.
+- `src/routes/` and `src/components/` call those endpoint functions, usually
+  through TanStack Query.
+
+To add an endpoint, first add a typed request function to the matching file in
+`src/api/` (or create a feature file such as `src/api/admin.ts`):
+
+```ts
+import { api } from '@/lib/api'
+
+type Student = {
+  _id: string
+  fullName: string
+}
+
+type StudentsResponse = {
+  data: {
+    students: Student[]
+  }
+}
+
+export async function getStudents() {
+  const response = await api.get<StudentsResponse>('/api/v1/admin/students')
+  return response.data.data.students
+}
+```
+
+Then use that function from a component with a query:
+
+```tsx
+import { useQuery } from '@tanstack/react-query'
+import { getStudents } from '@/api/admin'
+
+function StudentsList() {
+  const studentsQuery = useQuery({
+    queryKey: ['students'],
+    queryFn: getStudents,
+  })
+
+  if (studentsQuery.isPending) return <p>Loading students...</p>
+  if (studentsQuery.error) return <p>Could not load students.</p>
+
+  return (
+    <ul>
+      {studentsQuery.data.map((student) => (
+        <li key={student._id}>{student.fullName}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+Use the backend route's full path after the base URL (for example,
+`/api/v1/admin/students`), and give protected endpoints a valid login session so
+the shared client can send its bearer token. Add a Zod schema in `src/schemas/`
+when the endpoint accepts user input, and use a mutation for requests that
+change data.
+
 # Building For Production
 
 To build this application for production:

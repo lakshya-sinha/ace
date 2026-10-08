@@ -1,7 +1,6 @@
 import { User } from "../models/user.models.js";
 import { Enrollment } from "../models/enrollment.models.js";
 import { ApiResponse } from "../utils/api-response.js";
-import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import jwt from "jsonwebtoken";
 
@@ -16,8 +15,11 @@ const generateAccessTokenAndRefreshTokens = async (userId) => {
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (err) {
-    console.error("TOKEN ERROR:", err); // add this
-    throw new ApiError(500, "Something went wrong when accessing token ");
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(500, {}, "Something went wrong when accessing token."),
+      );
   }
 };
 
@@ -31,19 +33,41 @@ const registerUser = asyncHandler(async (req, res) => {
     contactNo,
     isEnglishTyping,
     isHindiTyping,
-    Dob,
+    dob,
     mothersName,
     fathersName,
     gender,
-    discount,
-    installment,
+    careOfTitle,
+    careOfName,
+    careOfNumber,
+    address,
+    matricBoard,
+    matricSchool,
+    matricPassingYear,
+    matricPercentage,
+    interBoard,
+    interSchool,
+    interPassingYear,
+    interPercentage,
+    graduationBoard,
+    graduationCollege,
+    graduationPassingYear,
+    graduationPercentage,
+    otherBoard,
+    otherCollege,
+    otherPassingYear,
+    otherPercentage,
+    aadhaarNo,
+    remarks,
   } = req.body;
 
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
   if (existedUser) {
-    throw new ApiError(409, "User with email or username is already exists.");
+    return res
+      .status(409)
+      .json(409, {}, "User with email or username is already exists.");
   }
   const avatarFile = req.files?.avatar?.[0];
   const signatureFile = req.files?.signature?.[0];
@@ -70,12 +94,32 @@ const registerUser = asyncHandler(async (req, res) => {
     contactNo,
     isEnglishTyping,
     isHindiTyping,
-    Dob,
+    dob,
     mothersName,
     fathersName,
     gender,
-    discount,
-    installment,
+    careOfTitle,
+    careOfName,
+    careOfNumber,
+    address,
+    matricBoard,
+    matricSchool,
+    matricPassingYear,
+    matricPercentage,
+    interBoard,
+    interSchool,
+    interPassingYear,
+    interPercentage,
+    graduationBoard,
+    graduationCollege,
+    graduationPassingYear,
+    graduationPercentage,
+    otherBoard,
+    otherCollege,
+    otherPassingYear,
+    otherPercentage,
+    aadhaarNo,
+    remarks,
     ...(avatar && { avatar }),
     ...(signature && { signature }),
   });
@@ -90,7 +134,15 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 
   if (!createdUser) {
-    throw new ApiError(500, "something went wrong while registering a user ");
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(
+          500,
+          {},
+          "Something went wrong while registering user.",
+        ),
+      );
   }
 
   return res
@@ -121,7 +173,9 @@ const login = asyncHandler(async (req, res) => {
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
-    throw new ApiError(400, "Invalid credentials");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, {}, "Invalid crendentials."));
   }
 
   const { accessToken, refreshToken } =
@@ -172,7 +226,9 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select(
     "-password -refreshToken -forgotPasswordToken -forgotPasswordExpiry",
   );
-  if (!user) throw new ApiError(404, "User not found");
+  if (!user) {
+    return res.status(404).json(new ApiResponse(404, {}, "User not found"));
+  }
 
   const userData = user.toJSON();
 
@@ -211,7 +267,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     req.cookies?.refreshToken || req.body.refreshToken;
 
   if (!incomingRefreshToken) {
-    throw new ApiError(401, "Unauthorized access");
+    return res
+      .status(401)
+      .json(new ApiResponse(401, {}, "Unauthorized access"));
   }
 
   try {
@@ -221,10 +279,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     );
     const user = await User.findById(decodedToken?._id);
     if (!user) {
-      throw new ApiError(401, "Invalid Refersh Token");
+      return res
+        .status(401)
+        .json(new ApiResponse(401, {}, "Invalid refresh token."));
     }
     if (incomingRefreshToken !== user?.refreshToken) {
-      throw new ApiError(401, "Refresh token is expired");
+      return res
+        .status(401)
+        .json(new ApiResponse(401, {}, "Refresh token is expired."));
     }
 
     const options = {
@@ -246,17 +308,21 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         new ApiResponse(200, { accessToken, refreshToken: newRefreshToken }),
       );
   } catch (error) {
-    throw new ApiError(401, "Invalid Refresh Token");
+    return res
+      .status(401)
+      .json(new ApiResponse(401, {}, "Invalid refresh Token"));
   }
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPaessword } = req.body;
+  const { oldPassword, newPassword } = req.body;
   const user = await User.findById(req.user?.id);
   const isPasswordValid = await user.isPasswordCorrect(oldPassword);
 
   if (!isPasswordValid) {
-    throw new ApiError(400, "Invalid old password");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, {}, "Invalid old password."));
   }
 
   user.password = newPassword;
