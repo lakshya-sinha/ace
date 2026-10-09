@@ -276,7 +276,7 @@ function AddStudentPage() {
                   </NativeSelectOption>
                   {coursesQuery.data?.map((course) => (
                     <NativeSelectOption key={course._id} value={course._id}>
-                      {course.title} - price: ₹{course.price} - discount: ₹
+                      {course.title} - price: ₹{course.price} -  Final: ₹
                       {course.price - (discount / 100) * course.price}
                     </NativeSelectOption>
                   ))}
@@ -521,13 +521,12 @@ function AddStudentPage() {
           </legend>
           <label className="flex items-center gap-2 text-sm">
             <Badge variant="destructive">
-              <input name="createdBy" type="text" value={user?.type} disabled />
+              <input name="createdBy" type="text" value={user?.username} />
             </Badge>
           </label>
           <textarea
             name="remarks"
             className="border-1 p-2 text-sm"
-            value="This student is totaly authorized by the admin."
           />
         </fieldset>
 

@@ -184,6 +184,7 @@ function StudentDetailsPage() {
         <Button
           render={<Link to="/dashboard/admin/students" />}
           variant="ghost"
+          className="p-2"
         >
           Back to students
         </Button>
@@ -237,70 +238,70 @@ function StudentDetailsPage() {
     deleteInstallmentMutation.mutate({ enrollmentId, installmentId })
   }
 
- function handlePrintApplication() {
-  const printWindow = window.open('', '_blank', 'width=900,height=1100')
-  if (!printWindow) {
-    toast.error('Allow pop-ups to print the student application.')
-    return
-  }
-
-  printWindow.opener = null
-
-  type FieldValue = string | number | boolean | undefined | null
-
-  // Safe, escaped display value ("—" when empty)
-  const esc = (value: FieldValue) => {
-    if (value === undefined || value === null || value === '') return '—'
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No'
-    return escapeHtml(String(value))
-  }
-
-  // Two label/value pairs per row
-  const fields = (items: Array<[string, FieldValue]>) => {
-    const rows: string[] = []
-    for (let i = 0; i < items.length; i += 2) {
-      const cell = ([label, value]: [string, FieldValue]) =>
-        `<th>${escapeHtml(label)}</th><td>${esc(value)}</td>`
-      const second = items[i + 1]
-      rows.push(`<tr>${cell(items[i])}${second ? cell(second) : '<th></th><td></td>'}</tr>`)
+  function handlePrintApplication() {
+    const printWindow = window.open('', '_blank', 'width=900,height=1100')
+    if (!printWindow) {
+      toast.error('Allow pop-ups to print the student application.')
+      return
     }
-    return rows.join('')
-  }
 
-  const fathersName = student?.careOfTitle === "father" ? student?.careOfName : "";
-  const careOfName = student?.careOfTitle === "guardian" ? student?.careOfName : "";
+    printWindow.opener = null
 
-  const section = (title: string, items: Array<[string, FieldValue]>) =>
-    `<section class="form-section"><h2>${escapeHtml(title)}</h2><table><tbody>${fields(items)}</tbody></table></section>`
+    type FieldValue = string | number | boolean | undefined | null
 
-  const qualifications: FieldValue[][] = [
-    ['10th', student?.matricBoard, student?.matricSchool, student?.matricPassingYear, student?.matricPercentage],
-    ['12th', student?.interBoard, student?.interSchool, student?.interPassingYear, student?.interPercentage],
-    ['Graduation', student?.graduationBoard, student?.graduationCollege, student?.graduationPassingYear, student?.graduationPercentage],
-    ['Other', student?.otherBoard, student?.otherCollege, student?.otherPassingYear, student?.otherPercentage],
-  ]
-  const qualificationRows = qualifications
-    .map(
-      ([level, board, institution, year, percentage]) =>
-        `<tr><th>${esc(level)}</th><td>${esc(board)}</td><td>${esc(institution)}</td><td>${esc(year)}</td><td>${esc(percentage)}</td></tr>`,
-    )
-    .join('')
+    // Safe, escaped display value ("—" when empty)
+    const esc = (value: FieldValue) => {
+      if (value === undefined || value === null || value === '') return '—'
+      if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+      return escapeHtml(String(value))
+    }
 
-  const logoUrl = `${window.location.origin}/logo.jpg`
-  const avatarUrl = getImageUrl(student?.avatar?.url)
-  const signatureUrl = getImageUrl(student?.signature?.url)
+    // Two label/value pairs per row
+    const fields = (items: Array<[string, FieldValue]>) => {
+      const rows: string[] = []
+      for (let i = 0; i < items.length; i += 2) {
+        const cell = ([label, value]: [string, FieldValue]) =>
+          `<th>${escapeHtml(label)}</th><td>${esc(value)}</td>`
+        const second = items[i + 1]
+        rows.push(`<tr>${cell(items[i])}${second ? cell(second) : '<th></th><td></td>'}</tr>`)
+      }
+      return rows.join('')
+    }
 
-  const imageBox = (cls: string, caption: string, src?: string) =>
-    `<div class="image-box ${cls}">
-       <div class="image-frame">${src ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(caption)}">` : '<span>Not provided</span>'}</div>
+    const fathersName = student?.careOfTitle === "father" ? student?.careOfName : "";
+    const careOfName = student?.careOfTitle === "guardian" ? student?.careOfName : "";
+
+    const section = (title: string, items: Array<[string, FieldValue]>) =>
+      `<section class="form-section"><h2>${escapeHtml(title)}</h2><table><tbody>${fields(items)}</tbody></table></section>`
+
+    const qualifications: FieldValue[][] = [
+      ['10th', student?.matricBoard, student?.matricSchool, student?.matricPassingYear, student?.matricPercentage],
+      ['12th', student?.interBoard, student?.interSchool, student?.interPassingYear, student?.interPercentage],
+      ['Graduation', student?.graduationBoard, student?.graduationCollege, student?.graduationPassingYear, student?.graduationPercentage],
+      ['Other', student?.otherBoard, student?.otherCollege, student?.otherPassingYear, student?.otherPercentage],
+    ]
+    const qualificationRows = qualifications
+      .map(
+        ([level, board, institution, year, percentage]) =>
+          `<tr><th>${esc(level)}</th><td>${esc(board)}</td><td>${esc(institution)}</td><td>${esc(year)}</td><td>${esc(percentage)}</td></tr>`,
+      )
+      .join('')
+
+    const logoUrl = `${window.location.origin}/logo.jpg`
+    const avatarUrl = getImageUrl(student?.avatar?.url)
+    const signatureUrl = getImageUrl(student?.signature?.url)
+
+    const imageBox = (cls: string, caption: string, src?: string) =>
+      `<div class="image-box ${cls}">
+       <div class="image-frame">${src ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(caption)}" src="${escapeHtml(caption)}">` : '<span>Not provided</span>'}</div>
        <div class="image-caption">${escapeHtml(caption)}</div>
      </div>`
 
-  const registrationDate = formatDate(student?.createdAt)
-  const generatedOn = escapeHtml(new Date().toLocaleString())
-  const generatedBy = user?.username ? ` · Generated by ${escapeHtml(user.username)}` : ''
+    const registrationDate = formatDate(student?.createdAt)
+    const generatedOn = escapeHtml(new Date().toLocaleString())
+    const generatedBy = user?.username ? ` · Generated by ${escapeHtml(user.username)}` : ''
 
-  const header = `
+    const header = `
     <header class="masthead">
       <div class="brand-wrap">
         <img class="logo" src="${escapeHtml(logoUrl)}" alt="Logo">
@@ -315,35 +316,35 @@ function StudentDetailsPage() {
       </div>
     </header>`
 
-  const footer = (pageNo: number) =>
-    `<footer class="footer">Generated on ${generatedOn}${generatedBy} · Page ${pageNo} of 2</footer>`
+    const footer = (pageNo: number) =>
+      `<footer class="footer">Generated on ${generatedOn}${generatedBy} · Page ${pageNo} of 2</footer>`
 
-  // Rules (Hindi) — edit freely
-  const mainRules = [
-    'सभी को सेंटर में अनुशासन का पालन करना है।',
-    'प्रत्येक दिन अपनी आईडी पहनकर आना है।',
-    'बिना किसी पूर्व सूचना के वर्ग में अनुपस्थित नहीं होना है।',
-    'अपने वर्ग के समय पर ही लैब जॉइन करना है।',
-    'क्लास के दौरान अपने मोबाइल का उपयोग न करें।',
-    'अपने साथ किसी भी तरह का सामान लेकर क्लास में प्रवेश न करें।',
-  ]
+    // Rules (Hindi) — edit freely
+    const mainRules = [
+      'सभी को सेंटर में अनुशासन का पालन करना है।',
+      'प्रत्येक दिन अपनी आईडी पहनकर आना है।',
+      'बिना किसी पूर्व सूचना के वर्ग में अनुपस्थित नहीं होना है।',
+      'अपने वर्ग के समय पर ही लैब जॉइन करना है।',
+      'क्लास के दौरान अपने मोबाइल का उपयोग न करें।',
+      'अपने साथ किसी भी तरह का सामान लेकर क्लास में प्रवेश न करें।',
+    ]
 
-  const generalRules = [
-    'प्रत्येक विद्यार्थी को निर्धारित शुल्क समय पर जमा करना अनिवार्य है।',
-    'कंप्यूटर, कीबोर्ड, माउस एवं अन्य उपकरणों का सावधानीपूर्वक उपयोग करें; क्षति होने पर उसकी भरपाई विद्यार्थी को करनी होगी।',
-    'लैब एवं कक्षा में स्वच्छता बनाए रखें तथा खाने-पीने की वस्तुएँ अंदर न लाएँ।',
-    'शिक्षकों, स्टाफ एवं साथी विद्यार्थियों के साथ सभ्य और सम्मानजनक व्यवहार करें।',
-    'बिना अनुमति के किसी भी सॉफ्टवेयर को इंस्टॉल, डिलीट या सिस्टम की सेटिंग में बदलाव न करें।',
-    'परीक्षा एवं टेस्ट में अनुचित साधनों का प्रयोग करना सख्त मना है।',
-    'छुट्टी या अवकाश की स्थिति में पूर्व सूचना देकर अनुमति लेना आवश्यक है।',
-    'नियमों का उल्लंघन करने पर संस्था द्वारा चेतावनी, जुर्माना या प्रवेश निरस्त करने की कार्यवाही की जा सकती है।',
-    'संस्था को आवश्यकतानुसार नियमों में परिवर्तन करने का पूर्ण अधिकार है।',
-  ]
+    const generalRules = [
+      'प्रत्येक विद्यार्थी को निर्धारित शुल्क समय पर जमा करना अनिवार्य है।',
+      'कंप्यूटर, कीबोर्ड, माउस एवं अन्य उपकरणों का सावधानीपूर्वक उपयोग करें; क्षति होने पर उसकी भरपाई विद्यार्थी को करनी होगी।',
+      'लैब एवं कक्षा में स्वच्छता बनाए रखें तथा खाने-पीने की वस्तुएँ अंदर न लाएँ।',
+      'शिक्षकों, स्टाफ एवं साथी विद्यार्थियों के साथ सभ्य और सम्मानजनक व्यवहार करें।',
+      'बिना अनुमति के किसी भी सॉफ्टवेयर को इंस्टॉल, डिलीट या सिस्टम की सेटिंग में बदलाव न करें।',
+      'परीक्षा एवं टेस्ट में अनुचित साधनों का प्रयोग करना सख्त मना है।',
+      'छुट्टी या अवकाश की स्थिति में पूर्व सूचना देकर अनुमति लेना आवश्यक है।',
+      'नियमों का उल्लंघन करने पर संस्था द्वारा चेतावनी, जुर्माना या प्रवेश निरस्त करने की कार्यवाही की जा सकती है।',
+      'संस्था को आवश्यकतानुसार नियमों में परिवर्तन करने का पूर्ण अधिकार है।',
+    ]
 
-  const list = (items: string[]) => `<ol>${items.map((r) => `<li>${r}</li>`).join('')}</ol>`
+    const list = (items: string[]) => `<ol>${items.map((r) => `<li>${r}</li>`).join('')}</ol>`
 
-  printWindow.document.open()
-  printWindow.document.write(`<!doctype html>
+    printWindow.document.open()
+    printWindow.document.write(`<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -379,10 +380,9 @@ function StudentDetailsPage() {
     .image-frame { display: grid; place-items: center; overflow: hidden; border: 1px solid #64748b; background: #f8fafc; color: #94a3b8; font-size: 9px; }
     .image-frame img { width: 100%; height: 100%; object-fit: cover; }
     .photo .image-frame { width: 32mm; height: 40mm; }
-    .sign .image-frame { width: 42mm; height: 40mm; }
-    .sign .image-frame img { object-fit: contain; padding: 4px; }
+    .sign .image-frame img { object-fit: contain; }
     .image-caption { color: #475569; font-size: 9px; font-weight: 700; letter-spacing: .6px; }
-    .images { display: flex; gap: 10px; }
+    .images { display: flex; gap: 10px; flex-direction: column}
 
     /* Sections */
     .form-section { margin-top: 12px; break-inside: avoid; }
@@ -435,7 +435,6 @@ function StudentDetailsPage() {
       </div>
       <div class="images">
         ${imageBox('photo', 'PHOTOGRAPH', avatarUrl)}
-        ${imageBox('sign', 'SIGNATURE', signatureUrl)}
       </div>
     </div>
 
@@ -443,11 +442,9 @@ function StudentDetailsPage() {
       ['Full name', student?.fullName],
       ['Username', student?.username],
       ['Email address', student?.email],
-      ['Account type', student?.type],
       ['Contact number', student?.contactNo],
       ['Gender', student?.gender],
       ['Date of birth', formatDate(student?.dob)],
-      ['Created by', student?.createdBy],
     ])}
 
     ${section('Personal and family details', [
@@ -457,7 +454,6 @@ function StudentDetailsPage() {
       ['Care of name', careOfName],
       ['Care of number', student?.careOfNumber],
       ['Aadhaar number', student?.aadhaarNo],
-      ['Remarks', student?.remarks],
       ['Address', student?.address],
     ])}
 
@@ -517,8 +513,8 @@ function StudentDetailsPage() {
   </script>
 </body>
 </html>`)
-  printWindow.document.close()
-}
+    printWindow.document.close()
+  }
 
   function handlePrintInstallment(
     enrollment: StudentEnrollment,
@@ -1085,152 +1081,189 @@ body {
   }
 
   return (
-    <section className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-2">
-          <Button
-            render={<Link to="/dashboard/admin/students" />}
-            variant="ghost"
-            className="px-0"
-          >
-            ← Back to students
-          </Button>
-          <h1 className="text-2xl font-semibold">
-            {student.fullName || student.username}
-          </h1>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePrintApplication}
-          >
-            <PrinterIcon aria-hidden="true" className="mr-2 size-4" />
-            Print application
-          </Button>
-          <Button variant="outline" onClick={() => setEditOpen(true)}>
-            Edit details
-          </Button>
-          <Button onClick={() => setAssignOpen(true)}>Assign course</Button>
-        </div>
-      </header>
+      <section className="space-y-6">
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-2">
+            <Button
+              render={<Link to="/dashboard/admin/students" />}
+              className="p-2"
+            >
+              ← Back to students
+            </Button>
+            <h1 className="text-2xl font-semibold">
+              {student.fullName || student.username}
+            </h1>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrintApplication}
+            >
+              <PrinterIcon aria-hidden="true" className="mr-2 size-4" />
+              Print application
+            </Button>
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              Edit details
+            </Button>
+            <Button onClick={() => setAssignOpen(true)}>Assign course</Button>
+          </div>
+        </header>
 
-      <section className="grid gap-6 rounded-md border p-4 md:grid-cols-[160px_1fr]">
-        <div className="flex gap-3 md:flex-col">
-          {student.avatar?.url && (
-            <img
-              src={getImageUrl(student.avatar.url)}
-              alt={`${student.fullName || student.username} avatar`}
-              className="size-24 rounded-md border object-cover"
-            />
-          )}
-          {student.signature?.url && (
-            <img
-              src={getImageUrl(student.signature.url)}
-              alt={`${student.fullName || student.username} signature`}
-              className="h-16 w-32 border object-contain"
-            />
-          )}
+        <section className="grid gap-8 rounded-lg border bg-card p-5 md:grid-cols-[180px_1fr]">
+    {/* Identity column */}
+    <aside className="flex items-start gap-4 md:flex-col">
+      {student.avatar?.url ? (
+        <img
+          src={getImageUrl(student.avatar.url)}
+          alt={`${student.fullName || student.username} avatar`}
+          className="size-28 rounded-lg border object-cover"
+        />
+      ) : (
+        <div
+          aria-hidden
+          className="grid size-28 place-items-center rounded-lg border bg-muted text-2xl font-semibold text-muted-foreground"
+        >
+          {(student.fullName || student.username || '?').charAt(0).toUpperCase()}
         </div>
-        <div className="space-y-5">
-          <div>
-            <h2 className="mb-3 font-semibold">Account and personal details</h2>
-            <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-              <Detail label="Full name" value={student.fullName} />
-              <Detail label="Username" value={student.username} />
-              <Detail label="Email" value={student.email} />
-              <Detail label="Account type" value={student.type} />
-              <Detail label="Contact number" value={student.contactNo} />
-              <Detail label="Gender" value={student.gender} />
-              <Detail label="Date of birth" value={formatDate(student.dob)} />
-              <Detail label="C/O type" value={student.careOfTitle} />
-              <Detail label="C/O name" value={student.careOfName} />
-              <Detail label="C/O number" value={student.careOfNumber} />
-              <Detail label="Father's name" value={student.fathersName} />
-              <Detail label="Mother's name" value={student.mothersName} />
-              <Detail label="Spouse name" value={student.spouseName} />
-              <Detail label="Aadhaar number" value={student.aadhaarNo} />
-              <Detail label="Address" value={student.address} />
-              <Detail
-                label="Email verified"
-                value={student.isEmailVerified ? 'Yes' : 'No'}
-              />
-              <Detail
-                label="Account locked"
-                value={student.locked ? 'Yes' : 'No'}
-              />
-              <Detail label="Created by" value={student.createdBy} />
-              <Detail
-                label="English typing"
-                value={student.isEnglishTyping ? 'Yes' : 'No'}
-              />
-              <Detail
-                label="Hindi typing"
-                value={student.isHindiTyping ? 'Yes' : 'No'}
-              />
-              <Detail
-                label="Registered"
-                value={formatDate(student.createdAt)}
-              />
-              <Detail
-                label="Last updated"
-                value={formatDate(student.updatedAt)}
-              />
-            </dl>
-          </div>
-          <div>
-            <h2 className="mb-3 font-semibold">Qualifications</h2>
-            <div className="overflow-x-auto rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Examination</TableHead>
-                    <TableHead>Board / University</TableHead>
-                    <TableHead>School / College</TableHead>
-                    <TableHead>Passing year</TableHead>
-                    <TableHead>Percentage</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">10th</TableCell>
-                    <TableCell>{student.matricBoard || '—'}</TableCell>
-                    <TableCell>{student.matricSchool || '—'}</TableCell>
-                    <TableCell>{student.matricPassingYear || '—'}</TableCell>
-                    <TableCell>{student.matricPercentage || '—'}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">12th</TableCell>
-                    <TableCell>{student.interBoard || '—'}</TableCell>
-                    <TableCell>{student.interSchool || '—'}</TableCell>
-                    <TableCell>{student.interPassingYear || '—'}</TableCell>
-                    <TableCell>{student.interPercentage || '—'}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Graduation</TableCell>
-                    <TableCell>{student.graduationBoard || '—'}</TableCell>
-                    <TableCell>{student.graduationCollege || '—'}</TableCell>
-                    <TableCell>
-                      {student.graduationPassingYear || '—'}
-                    </TableCell>
-                    <TableCell>{student.graduationPercentage || '—'}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Other</TableCell>
-                    <TableCell>{student.otherBoard || '—'}</TableCell>
-                    <TableCell>{student.otherCollege || '—'}</TableCell>
-                    <TableCell>{student.otherPassingYear || '—'}</TableCell>
-                    <TableCell>{student.otherPercentage || '—'}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-            <div className="mt-4">
-              <Detail label="Remarks" value={student.remarks} />
-            </div>
-          </div>
+      )}
+
+      <div className="min-w-0 space-y-2">
+        <p className="truncate font-semibold">
+          {student.fullName || student.username}
+        </p>
+        <p className="truncate text-sm text-muted-foreground">
+          @{student.username}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          <span
+            className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+              student.isEmailVerified
+                ? 'border-green-600/30 bg-green-600/10 text-green-700 dark:text-green-400'
+                : 'border-amber-600/30 bg-amber-600/10 text-amber-700 dark:text-amber-400'
+            }`}
+          >
+            {student.isEmailVerified ? 'Email verified' : 'Email unverified'}
+          </span>
+          <span
+            className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+              student.locked
+                ? 'border-red-600/30 bg-red-600/10 text-red-700 dark:text-red-400'
+                : 'border-green-600/30 bg-green-600/10 text-green-700 dark:text-green-400'
+            }`}
+          >
+            {student.locked ? 'Locked' : 'Active'}
+          </span>
         </div>
-      </section>
+      </div>
+
+      {student.signature?.url && (
+        <figure className="md:mt-2">
+          <img
+            src={getImageUrl(student.signature.url)}
+            alt={`${student.fullName || student.username} signature`}
+            className="h-16 w-36 rounded-md border bg-white object-contain p-1"
+          />
+          <figcaption className="mt-1 text-xs text-muted-foreground">
+            Signature
+          </figcaption>
+        </figure>
+      )}
+    </aside>
+
+    {/* Details column */}
+    <div className="min-w-0 space-y-8">
+      <div className="space-y-3">
+        <h2 className="border-b pb-2 text-sm font-semibold">Personal</h2>
+        <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2 xl:grid-cols-3">
+          <Detail label="Full name" value={student.fullName} />
+          <Detail label="Gender" value={student.gender} />
+          <Detail label="Date of birth" value={formatDate(student.dob)} />
+          <Detail label="Aadhaar number" value={student.aadhaarNo} />
+          <div className="sm:col-span-2">
+            <Detail label="Address" value={student.address} />
+          </div>
+        </dl>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="border-b pb-2 text-sm font-semibold">Contact</h2>
+        <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2 xl:grid-cols-3">
+          <Detail label="Email" value={student.email} />
+          <Detail label="Contact number" value={student.contactNo} />
+        </dl>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="border-b pb-2 text-sm font-semibold">Family</h2>
+        <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2 xl:grid-cols-3">
+          <Detail label="Father's name" value={student.fathersName} />
+          <Detail label="Mother's name" value={student.mothersName} />
+          <Detail label="Spouse name" value={student.spouseName} />
+          <Detail label="C/O type" value={student.careOfTitle} />
+          <Detail label="C/O name" value={student.careOfName} />
+          <Detail label="C/O number" value={student.careOfNumber} />
+        </dl>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="border-b pb-2 text-sm font-semibold">Account</h2>
+        <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2 xl:grid-cols-3">
+          <Detail label="Username" value={student.username} />
+          <Detail label="Account type" value={student.type} />
+          <Detail label="Created by" value={student.createdBy} />
+          <Detail
+            label="English typing"
+            value={student.isEnglishTyping ? 'Yes' : 'No'}
+          />
+          <Detail
+            label="Hindi typing"
+            value={student.isHindiTyping ? 'Yes' : 'No'}
+          />
+          <Detail label="Registered" value={formatDate(student.createdAt)} />
+          <Detail label="Last updated" value={formatDate(student.updatedAt)} />
+        </dl>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="border-b pb-2 text-sm font-semibold">Qualifications</h2>
+        <div className="overflow-x-auto rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Examination</TableHead>
+                <TableHead>Board / University</TableHead>
+                <TableHead>School / College</TableHead>
+                <TableHead className="text-right">Passing year</TableHead>
+                <TableHead className="text-right">Percentage</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[
+                { exam: '10th', board: student.matricBoard, place: student.matricSchool, year: student.matricPassingYear, pct: student.matricPercentage },
+                { exam: '12th', board: student.interBoard, place: student.interSchool, year: student.interPassingYear, pct: student.interPercentage },
+                { exam: 'Graduation', board: student.graduationBoard, place: student.graduationCollege, year: student.graduationPassingYear, pct: student.graduationPercentage },
+                { exam: 'Other', board: student.otherBoard, place: student.otherCollege, year: student.otherPassingYear, pct: student.otherPercentage },
+              ].map((r) => (
+                <TableRow key={r.exam}>
+                  <TableCell className="font-medium">{r.exam}</TableCell>
+                  <TableCell>{r.board || '—'}</TableCell>
+                  <TableCell>{r.place || '—'}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {r.year || '—'}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {r.pct || '—'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <Detail label="Remarks" value={student.remarks} />
+      </div>
+    </div>
+  </section>
 
       <section className="space-y-4">
         <div>
@@ -1289,7 +1322,7 @@ body {
         }}
         onSubmit={submitInstallment}
       />
-    </section>
+       </section>
   )
 }
 
@@ -1435,7 +1468,7 @@ function EditStudentDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Edit student</DialogTitle>
           <DialogDescription>
@@ -1806,7 +1839,7 @@ function AssignCourseDialog({
               )}
             </>
           )}
-          <DialogFooter>
+          <DialogFooter className="mt-2">
             <Button
               type="button"
               variant="outline"
@@ -1887,7 +1920,7 @@ function AddInstallmentDialog({
             required
           />
           <LabeledInput label="Note" name="note" />
-          <DialogFooter>
+          <DialogFooter className="mt-2">
             <Button
               type="button"
               variant="outline"

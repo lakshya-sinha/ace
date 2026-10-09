@@ -12,7 +12,7 @@ import {
   assignCourseToStudent,
   deassignCourseFromStudent,
   addStudentInstallment,
-  deleteStudentInstallment,
+  deleteStudentInstallment
 } from "../controllers/admin.controller.js";
 import { uploadImg } from "../middlewares/upload.middleware.js";
 import multer from "multer";
