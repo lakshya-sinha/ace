@@ -2,7 +2,7 @@ import { User } from "../models/user.models.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { ApiResponse } from "../utils/api-response.js";
 import jwt from "jsonwebtoken";
-import axios from 'axios';
+import { currentUser } from '../utils/currentUser.js';
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
   const token =
@@ -68,6 +68,20 @@ export const verifyStudent = asyncHandler(async (req, res, next) => {
 });
 
 export const verifyCourse = asyncHandler(async (req, res, next) => {
-  console.log("user data", req.user);
-  next();
+  const userData = await currentUser(req.user._id);
+  const course = req.params.course;
+  let verified = false;
+  userData.enrollments.forEach((elem) => {
+    console.log(elem, "course", course);
+    if (elem.course.title == course) {
+      verified = true;
+    }
+  })
+  if (verified) {
+    next();
+  } else {
+    return res
+      .status(401)
+      .json(new ApiResponse(401, {}, `${course}, Course is not assign to you.`))
+  }
 })

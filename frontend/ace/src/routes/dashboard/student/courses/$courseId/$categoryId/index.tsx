@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query';
-import { fetchVideo } from '#/api/admin';
+import { fetchVideo } from '#/api/student';
 import { Link } from '@tanstack/react-router';
+import { getErrorMessage } from '@/lib/get-error-message';
+import ErrorPage  from '@/components/Error';
+import { Folder } from 'lucide-react';
 export const Route = createFileRoute('/dashboard/student/courses/$courseId/$categoryId/')({
   component: RouteComponent,
 })
@@ -15,7 +18,7 @@ function RouteComponent() {
     enabled: !!categoryId
   })
   if (isLoading) return <p>Loading...</p>
-  if(isError) return <p> {error.message} </p> 
+  if(isError) return <ErrorPage message={getErrorMessage(error)} title={'Unauthorized Access.'}/>
   const course = data?.data;
   const categories = [...new Set(course?.videos.map((v) => v.group))]
 
@@ -25,10 +28,10 @@ function RouteComponent() {
       <Link
         key={group}
         type="button"
-        className="rounded-md border text-lg w-full font-medium hover:bg-muted py-5 text-center"
-        to={group}
+        className="px-2 rounded-md border text-lg w-75 font-medium hover:bg-primary hover:text-white py-5 text-center flex items-center gap-2"
+        to={ group}
       >
-        {group.toUpperCase()}
+        <Folder/>{group.toUpperCase()}
       </Link>
     ))}
   </div>

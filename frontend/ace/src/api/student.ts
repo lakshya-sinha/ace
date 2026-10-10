@@ -26,9 +26,38 @@ type CurrentUserResponse = {
   statusCode: number
 }
 
+export type VideoResponse ={
+  _id: string,
+  title: string,
+  url: string,
+  list: number,
+  category: string,
+  group: string,
+  course:  string,
+}
+
+export type fetchVideoResponse = {
+  videos: VideoResponse[]
+}
+
+type ApiResponse<T> = {
+  statusCode: number
+  success: boolean
+  message: string
+  data: T
+}
+
+
 export async function getCurrentStudent() {
   const response = await api.post<CurrentUserResponse>(
     '/api/v1/auth/current-user',
   )
   return response.data.data
+}
+
+export async function fetchVideo(courseId: string, categoryId: string, groupId: string) {
+  const response = await api.get<ApiResponse<fetchVideoResponse>>(
+      `/api/v1/student/video/${courseId}/${categoryId}/${groupId}`
+  )
+ return response.data;
 }

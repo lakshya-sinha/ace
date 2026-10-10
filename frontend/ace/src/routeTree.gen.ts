@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardAdminRouteRouteImport } from './routes/dashboard/admin/route'
 import { Route as DashboardStudentRouteRouteImport } from './routes/dashboard/student/route'
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
@@ -42,6 +43,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 const AuthSigninRoute = AuthSigninRouteImport.update({
   id: '/auth/signin',
   path: '/auth/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardAdminRouteRoute = DashboardAdminRouteRouteImport.update({
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/student': typeof DashboardStudentRouteRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/signin': typeof AuthSigninRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/admin/add-course': typeof DashboardAdminAddCourseRoute
   '/dashboard/admin/add-student': typeof DashboardAdminAddStudentRoute
   '/dashboard/student/settings': typeof DashboardStudentSettingsRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signin': typeof AuthSigninRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/dashboard/admin/add-course': typeof DashboardAdminAddCourseRoute
   '/dashboard/admin/add-student': typeof DashboardAdminAddStudentRoute
   '/dashboard/student/settings': typeof DashboardStudentSettingsRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/dashboard/student': typeof DashboardStudentRouteRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/signin': typeof AuthSigninRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/admin/add-course': typeof DashboardAdminAddCourseRoute
   '/dashboard/admin/add-student': typeof DashboardAdminAddStudentRoute
   '/dashboard/student/settings': typeof DashboardStudentSettingsRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/dashboard/student'
     | '/auth/login'
     | '/auth/signin'
+    | '/dashboard/'
     | '/dashboard/admin/add-course'
     | '/dashboard/admin/add-student'
     | '/dashboard/student/settings'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/login'
     | '/auth/signin'
+    | '/dashboard'
     | '/dashboard/admin/add-course'
     | '/dashboard/admin/add-student'
     | '/dashboard/student/settings'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/dashboard/student'
     | '/auth/login'
     | '/auth/signin'
+    | '/dashboard/'
     | '/dashboard/admin/add-course'
     | '/dashboard/admin/add-student'
     | '/dashboard/student/settings'
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   DashboardStudentRouteRoute: typeof DashboardStudentRouteRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSigninRoute: typeof AuthSigninRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardTeacherIndexRoute: typeof DashboardTeacherIndexRoute
 }
 
@@ -291,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/signin'
       fullPath: '/auth/signin'
       preLoaderRoute: typeof AuthSigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/admin': {
@@ -463,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardStudentRouteRoute: DashboardStudentRouteRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
   AuthSigninRoute: AuthSigninRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
   DashboardTeacherIndexRoute: DashboardTeacherIndexRoute,
 }
 export const routeTree = rootRouteImport

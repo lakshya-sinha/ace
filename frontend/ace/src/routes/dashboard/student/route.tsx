@@ -33,6 +33,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Logout } from '@/components/Logout'
+import LinkTabs from '#/components/LinkTabs'
 
 export const Route = createFileRoute('/dashboard/student')({
   component: StudentLayout,
@@ -162,13 +163,15 @@ function StudentLayout() {
       <SidebarInset>
         <header className="flex h-14 items-center gap-3 border-b px-4">
           <SidebarTrigger />
-          <span className="font-medium">Student dashboard</span>
+          <LinkTabs/>
         </header>
         <div className="flex-1 p-4 sm:p-6">
           {user === undefined || user === null ? (
             <p role="status">Loading your account...</p>
           ) : (
+            <div>
             <Outlet />
+            </div>
           )}
         </div>
       </SidebarInset>

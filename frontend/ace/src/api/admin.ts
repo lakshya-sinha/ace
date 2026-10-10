@@ -168,19 +168,7 @@ export type UpdateCourseInput = {
   isActive: boolean
 }
 
-export type VideoResponse ={
-  _id: string,
-  title: string,
-  url: string,
-  list: number,
-  category: string,
-  group: string,
-  course:  string,
-}
 
-export type fetchVideoResponse = {
-  videos: VideoResponse[]
-}
 
 export async function getCourses() {
   const response = await api.get<ApiResponse<CoursesPage>>(
@@ -346,9 +334,3 @@ export async function registerCourse(formData: FormData) {
   return response.data
 }
 
-export async function fetchVideo(courseId: string, categoryId: string, groupId: string) {
-  const response = await api.get<ApiResponse<fetchVideoResponse>>(
-      `/api/v1/student/video/${courseId}/${categoryId}/${groupId}`
-  )
- return response.data;
-}

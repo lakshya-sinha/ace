@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Logout } from '@/components/Logout'
 import ThemeToggle from '#/components/ThemeToggle'
+import  LinkTabs  from '@/components/LinkTabs';
 
 export const Route = createFileRoute('/dashboard/admin')({
   component: AdminLayout,
@@ -199,7 +200,8 @@ function AdminLayout() {
       <SidebarInset>
         <header className="flex h-14 items-center gap-2 border-b px-4">
           <SidebarTrigger />
-          <span className="font-medium">Admin dashboard</span>
+          <LinkTabs/>
+          
         </header>
         <div className="flex-1 p-6">
           {user === undefined || user === null ? (
