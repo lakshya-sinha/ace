@@ -49,7 +49,7 @@ function StudentOverview() {
                 View my courses <ArrowRight />
               </Button>
             </div>
-            <img src={`http://localhost:3000/${user?.avatar?.url}`} className="w-40 rounded-full"/>
+            <img src={`${import.meta.env.VITE_API_URL}/${user?.avatar?.url}`} className="w-40 rounded-full"/>
         </div>
        
       </section>
@@ -83,19 +83,19 @@ function StudentOverview() {
           />
           <SummaryCard
             label="Total course fees"
-            value={money.format(student?.fees.totalFee ?? 0)}
+            value={student?.locked ? "NA" : money.format(student?.fees.totalFee ?? 0)}
             detail="Across your enrollments"
             icon={<IndianRupee />}
           />
           <SummaryCard
             label="Paid so far"
-            value={money.format(student?.fees.totalPaid ?? 0)}
+            value={student?.locked ? "NA" : money.format(student?.fees.totalPaid ?? 0)}
             detail="Recorded payments"
             icon={<Wallet />}
           />
           <SummaryCard
             label="Fee balance"
-            value={money.format(student?.fees.totalDue ?? 0)}
+            value={student?.locked ? "NA" : money.format(student?.fees.totalDue ?? 0)}
             detail="Remaining course fees"
             icon={<IndianRupee />}
           />

@@ -5,8 +5,9 @@ import { ArrowRight, BookOpen, CircleCheck, Clock3 } from 'lucide-react'
 import { getCurrentStudent } from '@/api/student'
 import { Button } from '@/components/ui/button'
 import { getErrorMessage } from '@/lib/get-error-message'
+import { useAuth } from '#/lib/auth-context'
 
-export const Route = createFileRoute('/dashboard/student/courses')({
+export const Route = createFileRoute('/dashboard/student/courses/')({
   component: StudentCoursesPage,
 })
 
@@ -17,6 +18,7 @@ const money = new Intl.NumberFormat('en-IN', {
 })
 
 function StudentCoursesPage() {
+  const {user} = useAuth();
   const studentQuery = useQuery({
     queryKey: ['student', 'current-user'],
     queryFn: getCurrentStudent,
@@ -56,9 +58,9 @@ function StudentCoursesPage() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <FeeSummary label="Total fees" value={money.format(fees.totalFee)} />
-        <FeeSummary label="Paid" value={money.format(fees.totalPaid)} />
-        <FeeSummary label="Remaining" value={money.format(fees.totalDue)} />
+        <FeeSummary label="Total fees" value={user?.locked ? "NA" : money.format(fees.totalFee)} />
+        <FeeSummary label="Paid" value={user?.locked ? "NA" : money.format(fees.totalPaid)} />
+        <FeeSummary label="Remaining" value={user?.locked ? "NA" : money.format(fees.totalDue)} />
       </section>
 
       {enrollments.length === 0 ? (
@@ -109,13 +111,13 @@ function StudentCoursesPage() {
               </header>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <CourseAmount label="Course fee" value={enrollment.finalFee} />
-                <CourseAmount label="Paid" value={enrollment.totalPaid} />
-                <CourseAmount label="Balance due" value={enrollment.due} />
+                <CourseAmount label="Course fee" value={user?.locked ? 0 : enrollment.finalFee} />
+                <CourseAmount label="Paid" value={user?.locked ? 0 : enrollment.totalPaid} />
+                <CourseAmount label="Balance due" value={user?.locked ? 0 : enrollment.due} />
                 <div className="rounded-xl bg-muted/50 p-3">
                   <p className="text-xs text-muted-foreground">Fee status</p>
                   <p className="mt-1 font-semibold capitalize">
-                    {enrollment.feeStatus}
+                    {user?.locked ? "NA" : enrollment.feeStatus}
                   </p>
                 </div>
               </div>
@@ -124,7 +126,7 @@ function StudentCoursesPage() {
                 <Clock3 className="size-3.5" />
                 Enrolled {new Date(enrollment.enrolledOn).toLocaleDateString()}
               </p>
-              {enrollment.installments.length > 0 && (
+              {user?.locked ? "" : enrollment.installments.length > 0 && (
                 <div className="mt-5 border-t pt-4">
                   <p className="text-sm font-semibold">Recent payments</p>
                   <ul className="mt-2 space-y-2">
@@ -150,7 +152,7 @@ function StudentCoursesPage() {
                 </div>
               )}
               <Link
-                to="/dashboard/student"
+                to={"/dashboard/student/courses/" + enrollment?.course?.title}
                 className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800"
               >
                 Dashboard overview <ArrowRight className="size-4" />

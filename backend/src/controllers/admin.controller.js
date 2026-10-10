@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/async-handler.js";
 import jwt from "jsonwebtoken";
 import { Course } from "../models/course.models.js";
 import { Enrollment } from "../models/enrollment.models.js";
+import { Video } from "../models/video.models.js";
 import mongoose from "mongoose";
 
 const registerStudent = asyncHandler(async (req, res) => {
@@ -84,9 +85,9 @@ const registerStudent = asyncHandler(async (req, res) => {
     : undefined;
   const signature = signatureFile
     ? {
-        url: `/images/${signatureFile.filename}`,
-        localPath: signatureFile.path,
-      }
+      url: `/images/${signatureFile.filename}`,
+      localPath: signatureFile.path,
+    }
     : undefined;
 
   // 4. Create the user (no fee fields here anymore)
@@ -718,6 +719,19 @@ const deleteStudentInstallment = asyncHandler(async (req, res) => {
   );
 });
 
+const createVideo = asyncHandler(async (req, res) => {
+  const { title, url, list, category, group, course } = req.body;
+  const video = await Video.create({
+    title, url, list, category, group, course
+  })
+
+  await video.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "video created successfully."))
+})
+
+
 export {
   createCourse,
   getAllCourses,
@@ -731,4 +745,5 @@ export {
   deassignCourseFromStudent,
   addStudentInstallment,
   deleteStudentInstallment,
+  createVideo,
 };

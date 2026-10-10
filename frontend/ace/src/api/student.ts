@@ -11,6 +11,7 @@ export type StudentDashboardUser = AuthUser & {
   isEnglishTyping?: boolean
   isHindiTyping?: boolean
   enrollments: StudentEnrollment[]
+  locked: boolean
   fees: {
     totalFee: number
     totalPaid: number

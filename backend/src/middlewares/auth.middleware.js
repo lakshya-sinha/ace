@@ -2,11 +2,14 @@ import { User } from "../models/user.models.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { ApiResponse } from "../utils/api-response.js";
 import jwt from "jsonwebtoken";
+import axios from 'axios';
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
   const token =
     req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
+
+  console.log(token);
 
   if (!token) {
     return res
@@ -28,17 +31,23 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    throw new ApiError(401, "Invalid Access Token");
+    return res
+      .status(401)
+      .json(new ApiResponse(401, {}, "Invalid Access Token."))
   }
 });
 
 export const verifyAdmin = asyncHandler(async (req, res, next) => {
   if (!req.user) {
-    throw new ApiError(401, "Unauthorized request");
+    return res
+      .status(401)
+      .json(new ApiResponse(401, {}, "Uauthhorized request"))
   }
 
   if (req.user.type !== "admin") {
-    throw new ApiError(403, "You don't have permission to do this operation.");
+    return res
+      .status(403)
+      .json(new ApiResponse(403, {}, "You don't have permission to do this operation."))
   }
 
   next();
@@ -46,11 +55,19 @@ export const verifyAdmin = asyncHandler(async (req, res, next) => {
 
 export const verifyStudent = asyncHandler(async (req, res, next) => {
   if (!req.user) {
-    throw new ApiError(401, "Unauthorized requrest");
+    return res
+      .status(401)
+      .json(new ApiResponse(401, {}, "Unauthorized request"))
   }
   if (req.user.type !== "student") {
-    throw new ApiError(403, "You don't have permission to do this operation.");
+    return res
+      .status(403)
+      .json(new ApiResponse(403, {}, "You don't have permission to do this operation"))
   }
   next();
 });
 
+export const verifyCourse = asyncHandler(async (req, res, next) => {
+  console.log("user data", req.user);
+  next();
+})

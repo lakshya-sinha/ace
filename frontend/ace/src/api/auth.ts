@@ -7,6 +7,7 @@ export type AuthUser = {
   email: string
   fullName: string
   type: string
+  locked: boolean
   avatar?: { url: string }
 }
 
